@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <title>Ether Faucet</title>
+  </head>
+  <body>
+    <body>
+      <!-- <nav class="navbar navbar-default">
+        <h1 class="container-fluid">Ether Faucet</h1>
+      </nav> -->
+      <section class="container" style="margin-top:30px;">
+        <div class="panel panel-default">
+          <div class="panel-heading"><h3>Ether Faucet</h3></div>
+          <div class="panel-body">
+            <div style="margin: 5px 0">Testnet Wallet Address</div>
+            <div style="margin: 5px 0">
+              <input type="text" class="form-control container-fluid" id="reqAddress" placeholder="Enter your ERC-20 compatible address (e.g.: 0x…)" aria-describedby="basic-addon1" value="0x70997970C51812dc3A010C7d01b50e0d17dc79C8">
+            </div>
+            <button class="btn btn-success" style="margin: 5px 0" onclick="requestEther()">Request 1 ether from faucet</button>
+          </div>
+        </div>
+        <!-- <div class="panel panel-default">
+          <div class="panel-heading"><h3>transactions</h3></div>
+          <div class="panel-body" style="flex-direction: column; display: flex;">
+            <a href="https://ropsten.etherscan.io/tx/0xb07b43fcdd81e0a57fc55cb4d57c5114dde6aa1e939a0c146d73535f8d71e2b4" target="_blank">0xb07b43fcdd81e0a57fc55cb4d57c5114dde6aa1e939a0c146d73535f8d71e2b4</a>
+            <a href="https://ropsten.etherscan.io/tx/0x58e459fb355ed2d93903395d69bf014ac164474a665efaa63b6edee2a510ecf7" target="_blank">0x58e459fb355ed2d93903395d69bf014ac164474a665efaa63b6edee2a510ecf7</a>
+          </div>
+        </div> -->
+      </section>
+    </body>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script>
+      // If this package is in a subfolder, define the backend path
+      // backendPath = "backend/";
+      if (typeof(backendPath) == 'undefined') {
+        var backendPath = '';
+      }
+      function requestEther() {
+
+        var address = document.getElementById("reqAddress").value;
+        if(!address) {
+          alert("Please enter the address");
+          return;
+        }
+
+        axios.post(
+          backendPath+"faucet.php",
+          {
+            reqAddress: address,
+          }
+        )
+        .then(function(response) { 
+          if(response.status == 200) {
+            if(response.data.status === "error") {
+              alert(response.data.msg);
+            }
+            else if(response.data.status === "success") {
+              alert(response.data.msg);
+            }
+            else {
+              alert("Network Error! please try it again later")
+            }
+          }
+          else {
+            alert("Network Error! please try it again later");
+          }
+        })
+        .catch(function(error) {
+          console.error(error);
+        });
+      }
+    </script>
+  </body>
+</html>

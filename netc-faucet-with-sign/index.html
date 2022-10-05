@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    
+
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    
+    <!-- Ethereum library for interacting with the blockchain -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.8/dist/index.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@walletconnect/web3-provider@1.7.8/dist/umd/index.min.js"></script>
+
+    <title>NetCoin Faucet</title>
+  </head>
+  <body>
+    <body>
+      <!-- <nav class="navbar navbar-default">
+        <h1 class="container-fluid">Ether Faucet</h1>
+      </nav> -->
+      <section class="container" style="margin-top:30px; display: flex;align-items: center;justify-content: center;">
+        <div class="panel panel-default" style="width: 750px;">
+          <div class="panel-heading"><h3>NetCoin(NETC) Faucet</h3></div>
+          <div class="panel-body" style="display: flex;flex-direction: column;justify-content: space-evenly;">
+            <div style="display: flex;margin: 5px 0; justify-content: space-between;align-items: center;">
+              <div style>Enter Your Wallet Address <span style="color:grey; font-weight: bold;">Or</span> Connect Your Wallet</div>
+              <button class="btn btn-primary" style="margin: 5px 5px; float:right;" onclick="connectWallet()">CONNECT</button>
+            </div>
+            <div style="margin: 5px 0">
+              <input type="text" class="form-control container-fluid" id="reqAddress" placeholder="Enter your ERC-20 compatible address (e.g.: 0x…)" aria-describedby="basic-addon1" value="">
+            </div>
+            <button class="btn btn-success" style="margin: 5px 0" id="reqBtn" onclick="sendRequest()">Request 1 NETC from faucet</button>
+            <div class="spinner-border text-primary" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="panel panel-default">
+          <div class="panel-heading"><h3>transactions</h3></div>
+          <div class="panel-body" style="flex-direction: column; display: flex;">
+            <a href="https://ropsten.etherscan.io/tx/0xb07b43fcdd81e0a57fc55cb4d57c5114dde6aa1e939a0c146d73535f8d71e2b4" target="_blank">0xb07b43fcdd81e0a57fc55cb4d57c5114dde6aa1e939a0c146d73535f8d71e2b4</a>
+            <a href="https://ropsten.etherscan.io/tx/0x58e459fb355ed2d93903395d69bf014ac164474a665efaa63b6edee2a510ecf7" target="_blank">0x58e459fb355ed2d93903395d69bf014ac164474a665efaa63b6edee2a510ecf7</a>
+          </div>
+        </div> -->
+      </section>
+    </body>
+
+    <!-- Optional JavaScript -->
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+    <script>
+      // If this package is in a subfolder, define the backend path
+      // backendPath = "backend/";
+      // connect -> fetch_nonce -> sign message-> jwt -> request token with jwt
+      
+      var JWT = '';
+      if (typeof(backendPath) == 'undefined') {
+        var backendPath = '';
+      }
+      
+      function toggleRequestButton(isLoading) {
+        if(isLoading) {
+          document.getElementById('reqBtn').disabled = true;
+        }
+        else {
+          document.getElementById('reqBtn').disabled = false;
+        }
+      }
+
+      function sendRequest() {
+        var address = document.getElementById("reqAddress").value;
+        if(!address) {
+          alert("Please enter the address");
+          return;
+        }
+        if (!JWT) {
+          toggleRequestButton(true);
+          axios.post(
+            backendPath+"faucet.php",
+            {
+              reqAddress: address,
+              request: 'requestMessage'
+            }
+          )
+          .then(function(response) { 
+            if(response.status == 200) {
+              let message = response.data.msg;
+              handleSignMessage(message, address).then(handleAuthenticate);
+              
+              function handleSignMessage(msg, addr) {
+                return new Promise((resolve, reject) =>  
+                  web3.eth.personal.sign(
+                    web3.utils.utf8ToHex(message),
+                    address,
+                    (err, signature) => {
+                      if (err) {
+                        alert('Failed to sign')
+                        toggleRequestButton(false);
+                      }
+                      return resolve({ address, signature });
+                    }
+                  )
+                );
+              }
+
+              function handleAuthenticate({ address, signature }) {
+                axios
+                  .post(
+                    backendPath+"faucet.php",
+                    {
+                      request: "auth",
+                      reqAddress: arguments[0].address,
+                      signature: arguments[0].signature
+                    }
+                  )
+                  .then(function(response) {
+                    if (response.data.status == "success") { 
+                      JWT = response.data.msg;
+                      requestToken();
+                    }
+                    else {
+                      JWT = '';
+                      alert('Authenticate failed!');
+                      toggleRequestButton(false);
+                    }
+                  })
+                  .catch(function(error) {
+                    console.error(error);
+                  });
+              }
+
+            }
+            else {
+              alert("Network Error! please try it again later")
+              toggleRequestButton(false);
+            }
+          })
+          .catch(function(error) {
+            alert("Network Error! please try it again later");
+            console.error(error);
+          });
+        }
+        else {
+          requestToken();
+        }
+      }
+
+      function requestToken() {
+        var address = document.getElementById("reqAddress").value;
+        toggleRequestButton(true);
+        axios.post(
+          backendPath+"faucet.php",
+          {
+            reqAddress: address,
+            request: 'requestToken',
+            JWT: JWT            
+          }
+        )
+        .then(function(response) { 
+          if(response.status == 200) {
+            if(response.data.status === "error") {
+              alert(response.data.msg);
+              if(response.data.msg.substring(0, 4) == 'Auth') {
+                JWT = '';
+              }
+            }
+            else if(response.data.status === "success") {
+              alert(response.data.msg);
+            }
+            else {
+              alert("Network Error! please try it again later")
+            }
+
+          }
+          else {
+            alert("Network Error! please try it again later");
+          }
+          toggleRequestButton(false);
+        })
+        .catch(function(error) {
+          alert("Network Error! please try it again later");
+          console.error(error);
+        });
+      }
+
+      // On accountsChanged
+      async function ethAccountsChanged() {      
+        let accountsOnEnable = await web3.eth.getAccounts();
+        let address = accountsOnEnable[0];
+        try {
+          address = address.toLowerCase();
+          if(address) document.getElementById("reqAddress").value = address;
+        } catch (e) {
+          document.getElementById("reqAddress").value = '';
+        }
+      }
+
+      function ethAccountsDisconnected() {
+        document.getElementById("reqAddress").value = '';
+      }
+
+      async function connectWallet() {
+        document.getElementById("reqAddress").value = '';
+        await onConnectLoadWeb3Modal();        
+        if (web3ModalProv) {
+          try {
+            let accountsOnEnable = await ethereum.request({ method: 'eth_accounts' });
+            let address = accountsOnEnable[0];
+            address = address.toLowerCase();
+            document.getElementById("reqAddress").value = address;
+          } catch (error) {
+            document.getElementById("reqAddress").value = '';
+            console.log(error);
+            return;
+          }
+        }
+        else {
+          return;
+        }
+      }
+    </script>
+    <script src="./assets/web3-modal.js"></script>
+  </body>
+</html>
