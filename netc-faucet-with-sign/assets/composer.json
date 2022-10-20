@@ -1,0 +1,21 @@
+{
+    "name": "web3p/faucet-eth",
+    "minimum-stability": "stable",
+    "description": "Faucet ethereum using web3p",
+    "authors": [
+        {
+            "name": "Yierpan",
+            "email": "green.coder999@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^6.3 | ^7.0",
+        "PHP": "^7.1",
+	"simplito/elliptic-php": "~1.0.6",
+        "kornrunner/keccak": "~1.0",
+        "phpseclib/phpseclib": "~2.0.11",
+        "ext-mbstring": "*",
+        "web3p/ethereum-tx": "^0.4.3",
+        "web3p/web3.php": "^0.1.5"
+    }
+}

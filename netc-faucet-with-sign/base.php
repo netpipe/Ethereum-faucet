@@ -36,14 +36,14 @@ define("MAX_BALANCE",  5);
  * 
  * @var string
  */
-$faucetWalletPrivateKey = 'FFa044e0edd06fbc97195e052bFFc69d586ecc36c8510ff41fb389a6cFFF41FF';
+$faucetWalletPrivateKey = '993bc8ec3e04e516a416a1bae7c3be7f75dc65';
 
 /**
  * faucetWalletAddress
  * 
  * @var string
  */
-$faucetWalletAddress = '0x123FGGB409672dC3dC0ea158FdA8352eGG8BA9CC';
+$faucetWalletAddress = '0xE60Ec69ec0b13c301f779d5Aa1';
 
 /**
  * faucetAmount(ethers)
