@@ -5,6 +5,8 @@ Ethereum/DogeChain.dog Faucet that also supports custom tokens/contracts on othe
 
 has webwallet support, for a simpler example see the ethereum-test folder.
 
+i suggest if using your own token create with moondeploy.com they were only 40 dollars. another free option but they take .3 % of the coins is https://app.unicrypt.network
+
 
 modify base.php with your own info also 
 
