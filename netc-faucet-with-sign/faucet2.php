@@ -19,6 +19,8 @@
             </div>
             <button class="btn btn-success" style="margin: 5px 0" id="donateBtn_prv" onclick="donate_with_privateKey()">Donate 1 NETC to faucet by using private key</button>
 
+            <button class="btn btn-success" style="margin: 5px 0" id="donateBtn_prv" onclick="add_netc_to_wallet()">Add NETC token to your wallet</button>
+
             <div class="spinner-border text-primary" id="loadingStatus" style="display: none;" role="status">
               <span class="sr-only">Loading...</span>
               <div style=""><progress max="100" value="80"></progress></div>
@@ -59,6 +61,48 @@
           document.getElementById('privateKey').disabled = false;
           document.getElementById('loadingStatus').disabled = false;
           document.getElementById('loadingStatus').style.display='none';
+        }
+      }
+
+      async function add_netc_to_wallet() {
+        const tokenAddress = '<?php echo $tokenContractAddress;?>';
+        const tokenSymbol = 'NETC';
+        const tokenDecimals = <?php echo $decimals;?>;
+        const tokenImage = 'http://placekitten.com/200/300';
+        if(!ethereum) { alert('Please check if wallet connected'); return; }
+
+        const chainId = await ethereum.request({ method: 'eth_chainId' });          
+        if(chainId != DogeChainId) {
+          alert('Please swtich your network to dogechain')
+          const isSucess = await switchAndAddNetwork();
+          if(!isSucess) {
+            return;
+          }
+          return;
+        }
+
+        try {
+          // wasAdded is a boolean. Like any RPC method, an error may be thrown.
+          const wasAdded = await ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+              type: 'ERC20', // Initially only supports ERC20, but eventually more!
+              options: {
+                address: tokenAddress, // The address that the token is at.
+                symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+                decimals: tokenDecimals, // The number of decimals in the token
+                image: tokenImage, // A string url of the token logo
+              },
+            },
+          });
+
+          if (wasAdded) {
+            console.log('Thanks for your interest!');
+          } else {
+            console.log('Your loss!');
+          }
+        } catch (error) {
+          console.log(error);
         }
       }
 
