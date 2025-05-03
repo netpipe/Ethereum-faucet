@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP Ethereum Faucet</title>
+  <style>
+    body { font-family: sans-serif; max-width: 500px; margin: 2em auto; padding: 1em; border: 1px solid #ccc; border-radius: 12px; }
+    input, button { padding: 10px; font-size: 16px; margin: 5px 0; width: 100%; }
+    .success { color: green; }
+    .error { color: red; }
+  </style>
+</head>
+<body>
+
+  <h2>Ethereum Faucet</h2>
+  <input id="address" placeholder="Enter your Ethereum address" />
+  <button onclick="requestEth()">💸 Get Free ETH</button>
+  <button onclick="donate()">🙏 Donate 0.01 ETH (via MetaMask)</button>
+
+  <p id="status"></p>
+
+  <script>
+    async function requestEth() {
+      const addr = document.getElementById('address').value.trim();
+      if (!/^0x[a-fA-F0-9]{40}$/.test(addr)) {
+        setStatus("Invalid address", true);
+        return;
+      }
+
+      setStatus("Sending transaction...");
+      try {
+        const res = await fetch('faucet.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'to=' + encodeURIComponent(addr)
+        });
+        const data = await res.json();
+        if (data.txHash) {
+          setStatus(`✅ Transaction sent: <a href="https://sepolia.etherscan.io/tx/${data.txHash}" target="_blank">${data.txHash}</a>`, false);
+        } else {
+          setStatus("Transaction failed", true);
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Error contacting server", true);
+      }
+    }
+
+    async function donate() {
+      if (typeof window.ethereum === 'undefined') {
+        setStatus("MetaMask not found", true);
+        return;
+      }
+
+      const [from] = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      try {
+        const txHash = await ethereum.request({
+          method: 'eth_sendTransaction',
+          params: [{
+            from,
+            to: '0xYOUR_FAUCET_ADDRESS',
+            value: '0x2386F26FC10000', // 0.01 ETH
+          }]
+        });
+        setStatus(`🙏 Thank you! Tx: <a href="https://sepolia.etherscan.io/tx/${txHash}" target="_blank">${txHash}</a>`, false);
+      } catch (err) {
+        setStatus("Donation canceled or failed", true);
+      }
+    }
+
+    function setStatus(msg, isError = false) {
+      const el = document.getElementById('status');
+      el.className = isError ? 'error' : 'success';
+      el.innerHTML = msg;
+    }
+  </script>
+</body>
+</html>
