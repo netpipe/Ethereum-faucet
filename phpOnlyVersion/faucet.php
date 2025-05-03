@@ -23,6 +23,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['to'])) {
     $gas_limit = 21000;
     $value_wei = bcmul("0.01", bcpow("10", "18")); // 0.01 ETH
 
+$tokenContract = "0xYourTokenContractAddress"; // 🔁 Your token contract
+//$tokenContract = $to;
+$recipient = $to;
+$amount = bcmul("100", bcpow("10", "18")); // 100 tokens (depends on decimals)
+
+$method_id = substr(keccak256("transfer(address,uint256)"), 0, 8); // 4-byte method ID
+$recipient_padded = str_pad(substr($recipient, 2), 64, '0', STR_PAD_LEFT);
+$amount_padded = str_pad(dechex($amount), 64, '0', STR_PAD_LEFT);
+$data = "0x" . $method_id . $recipient_padded . $amount_padded;
+if (0){ // set to 1 after setting tokenContract with your token
+$tx = [
+    'nonce'    => dec2hex($nonce),
+    'gasPrice' => dec2hex($gas_price),
+    'gasLimit' => dec2hex(60000), // token transfer is more expensive than ETH
+    'to'       => $tokenContract,
+    'value'    => '0', // ERC-20 doesn't need ETH value
+    'data'     => substr($data, 2), // no 0x prefix inside RLP
+    'chainId'  => 11155111
+];
+}else{
     // RLP-encode tx fields
     $tx = [
         'nonce'    => dec2hex($nonce),
@@ -33,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['to'])) {
         'data'     => '',
         'chainId'  => 11155111 // Sepolia
     ];
+}
 
     $raw_tx = rlp_encode_tx($tx, $private_key);
     $tx_hash = eth_rpc("eth_sendRawTransaction", [$raw_tx]);
