@@ -15,11 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 </head>
 <body>
   <h2>Ethereum Sender (Private Key)</h2>
-  <form method="post">
-    <input type="text" name="to" placeholder="Recipient address (0x...)" required>
-    <input type="number" step="0.00001" name="amount" placeholder="Amount (ETH)" required>
-    <button type="submit">🚀 Send ETH</button>
-  </form>
+<form method="post">
+  <input type="text" name="private_key" placeholder="Private Key (no 0x)" required>
+  <input type="text" name="to" placeholder="Recipient address (0x...)" required>
+  <input type="number" step="0.00001" name="amount" placeholder="Amount (ETH or Token)" required>
+  <input type="text" name="token" placeholder="Token contract (optional)">
+  <button type="submit">🚀 Send</button>
+</form>
+
   <?php if (isset($_GET['tx'])): ?>
     <div id="status">
       ✅ Sent! <a href="https://sepolia.etherscan.io/tx/<?php echo $_GET['tx']; ?>" target="_blank">View on Etherscan</a>
@@ -36,8 +39,15 @@ require_once 'ecdsa.php';
 require_once 'keccak256.php';
 
 $rpcUrl = "https://rpc.sepolia.org"; // Or localhost
-$privateKey = "YOUR_PRIVATE_KEY";    // No 0x
-$faucetAddress = "0xYOUR_ADDRESS";   // Matches key
+//$privateKey = "YOUR_PRIVATE_KEY";    // No 0x
+//$faucetAddress = "0xYOUR_ADDRESS";   // Matches key
+$privateKey = strtolower(trim($_POST['private_key']));
+if (!preg_match('/^[0-9a-f]{64}$/', $privateKey)) exit("❌ Invalid private key");
+
+// Derive address from private key
+$pub = privateKeyToPublicKey($privateKey); // from ecdsa.php
+$faucetAddress = "0x" . substr(keccak256(hex2bin(substr($pub, 2))), -40);
+
 
 $to = strtolower(trim($_POST['to']));
 $amount = $_POST['amount'];
