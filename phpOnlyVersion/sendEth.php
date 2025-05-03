@@ -20,8 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
   <input type="text" name="to" placeholder="Recipient address (0x...)" required>
   <input type="number" step="0.00001" name="amount" placeholder="Amount (ETH or Token)" required>
   <input type="text" name="token" placeholder="Token contract (optional)">
+  <input type="text" name="rpc" placeholder="RPC URL (e.g. https://rpc.sepolia.org)" required>
+  <input type="text" name="chainid" placeholder="Chain ID (e.g. 11155111)" required>
   <button type="submit">🚀 Send</button>
 </form>
+
 
   <?php if (isset($_GET['tx'])): ?>
     <div id="status">
@@ -41,13 +44,17 @@ require_once 'keccak256.php';
 $rpcUrl = "https://rpc.sepolia.org"; // Or localhost
 //$privateKey = "YOUR_PRIVATE_KEY";    // No 0x
 //$faucetAddress = "0xYOUR_ADDRESS";   // Matches key
+$rpcUrl = trim($_POST['rpc']);
+$chainId = (int) $_POST['chainid'];
 $privateKey = strtolower(trim($_POST['private_key']));
-if (!preg_match('/^[0-9a-f]{64}$/', $privateKey)) exit("❌ Invalid private key");
 
-// Derive address from private key
+if (!preg_match('/^https?:\/\/.+/', $rpcUrl)) exit("❌ Invalid RPC URL");
+if (!preg_match('/^[0-9a-f]{64}$/', $privateKey)) exit("❌ Invalid private key");
+if ($chainId <= 0) exit("❌ Invalid chain ID");
+
+// Derive sender address from private key
 $pub = privateKeyToPublicKey($privateKey); // from ecdsa.php
 $faucetAddress = "0x" . substr(keccak256(hex2bin(substr($pub, 2))), -40);
-
 
 $to = strtolower(trim($_POST['to']));
 $amount = $_POST['amount'];
@@ -70,7 +77,7 @@ $tx = [
     'to' => $to,
     'value' => $valueWei,
     'data' => '',
-    'chainId' => 11155111
+    'chainId' => $chainId
 ];
 
 // 3. Sign
